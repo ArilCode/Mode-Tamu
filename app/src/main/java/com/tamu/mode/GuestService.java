@@ -153,4 +153,129 @@ public class GuestService extends AccessibilityService {
         }
     }
 
-    private void collectAll(AccessibilityNodeInfo n, Lis
+    private void collectAll(AccessibilityNodeInfo n, List<Rect> out, int depth) {
+        if (n == null || depth > 30) return;
+        if (n.isClickable() && n.isVisibleToUser()) {
+            DisplayMetrics dm = getResources().getDisplayMetrics();
+            Rect r = new Rect();
+            n.getBoundsInScreen(r);
+            boolean sizeOk = r.width() >= dm.widthPixels * 0.15f && r.width() <= dm.widthPixels * 0.6f
+                    && r.height() >= dm.heightPixels * 0.05f && r.height() <= dm.heightPixels * 0.2f;
+            if (sizeOk) {
+                if (!out.contains(r)) out.add(r);
+                return;
+            }
+        }
+        for (int i = 0; i < n.getChildCount(); i++) collectAll(n.getChild(i), out, depth + 1);
+    }
+
+    private void collect(AccessibilityNodeInfo n, List<String> kws, List<Rect> out, int depth) {
+        if (n == null || depth > 30) return;
+        CharSequence tx = n.getText();
+        CharSequence cd = n.getContentDescription();
+        String s = ((tx == null ? "" : tx) + " " + (cd == null ? "" : cd)).toLowerCase();
+
+        if (s.length() < 70 && n.isVisibleToUser()) {
+            boolean match = false;
+            for (String k : kws) {
+                if (s.contains(k)) { match = true; break; }
+            }
+            if (match) {
+                AccessibilityNodeInfo t = n;
+                while (t != null && !t.isClickable()) t = t.getParent();
+                Rect r = new Rect();
+                (t != null ? t : n).getBoundsInScreen(r);
+                DisplayMetrics dm = getResources().getDisplayMetrics();
+                boolean tooBig = r.width() > dm.widthPixels * 0.9f
+                        && r.height() > dm.heightPixels * 0.25f;
+                if (r.width() > 0 && r.height() > 0 && !tooBig && !out.contains(r)) out.add(r);
+                return;
+            }
+        }
+        for (int i = 0; i < n.getChildCount(); i++) collect(n.getChild(i), kws, out, depth + 1);
+    }
+
+    private void rebuildBlockers(List<Rect> rects) {
+        clearBlockers();
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        for (Rect r : rects) {
+            View v = new View(this);
+            v.setBackgroundColor(0x33FF3B5C);
+            v.setOnClickListener(x -> Toast.makeText(this, MSG_GUEST, Toast.LENGTH_SHORT).show());
+            WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                    r.width(), r.height(),
+                    WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                            | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                    PixelFormat.TRANSLUCENT);
+            lp.gravity = Gravity.TOP | Gravity.START;
+            lp.x = r.left;
+            lp.y = r.top;
+            try {
+                wm.addView(v, lp);
+                blockers.add(v);
+            } catch (Exception ignored) { }
+        }
+        lastRects = new ArrayList<>(rects);
+    }
+
+    private void clearBlockers() {
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        for (View v : blockers) {
+            try { wm.removeView(v); } catch (Exception ignored) { }
+        }
+        blockers.clear();
+        lastRects = new ArrayList<>();
+    }
+
+    private void showOverlay(String msg) {
+        handler.removeCallbacks(hideRunnable);
+        if (overlay == null) {
+            overlay = new FrameLayout(this);
+            overlay.setBackgroundColor(0xF00B1020);
+            overlayText = new TextView(this);
+            overlayText.setTextColor(0xFFEAF0FF);
+            overlayText.setTextSize(22);
+            overlayText.setGravity(Gravity.CENTER);
+            overlayText.setPadding(70, 0, 70, 0);
+            overlay.addView(overlayText, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT));
+
+            WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                    PixelFormat.TRANSLUCENT);
+            try {
+                ((WindowManager) getSystemService(WINDOW_SERVICE)).addView(overlay, lp);
+            } catch (Exception e) {
+                overlay = null;
+                return;
+            }
+        }
+        overlayText.setText(msg);
+        handler.postDelayed(hideRunnable, 2500);
+    }
+
+    private void hideOverlay() {
+        if (overlay != null) {
+            try {
+                ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(overlay);
+            } catch (Exception ignored) { }
+            overlay = null;
+        }
+    }
+
+    @Override
+    public void onInterrupt() { }
+
+    @Override
+    public void onDestroy() {
+        hideOverlay();
+        clearBlockers();
+        super.onDestroy();
+    }
+}

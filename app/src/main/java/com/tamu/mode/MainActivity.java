@@ -377,3 +377,16 @@ public class MainActivity extends Activity {
         public void addTile() {
             runOnUiThread(() -> {
                 if (Build.VERSION.SDK_INT >= 33) {
+                    StatusBarManager sbm = getSystemService(StatusBarManager.class);
+                    sbm.requestAddTileService(new ComponentName(MainActivity.this, AceTile.class),
+                            "Mode ACE", Icon.createWithResource(MainActivity.this, R.drawable.ic_tile),
+                            getMainExecutor(), result -> { });
+                } else {
+                    Toast.makeText(MainActivity.this,
+                            "Tarik panel ke bawah, tekan ikon pensil, lalu tambahkan Mode ACE",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+}
