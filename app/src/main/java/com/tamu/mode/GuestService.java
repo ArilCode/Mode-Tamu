@@ -124,8 +124,6 @@ public class GuestService extends AccessibilityService {
         return 0;
     }
 
-    // ---------- Blokir tombol panel ----------
-
     private void scan() {
         SharedPreferences sp = prefs();
         if (!sp.getBoolean("guest", false) || !hasTileRules(sp)) { clearBlockers(); return; }
@@ -155,12 +153,4 @@ public class GuestService extends AccessibilityService {
         }
     }
 
-    // Mode "kunci semua": semua kotak yang bisa diketuk dengan ukuran seperti tombol panel
-    private void collectAll(AccessibilityNodeInfo n, List<Rect> out, int depth) {
-        if (n == null || depth > 30) return;
-        if (n.isClickable() && n.isVisibleToUser()) {
-            DisplayMetrics dm = getResources().getDisplayMetrics();
-            Rect r = new Rect();
-            n.getBoundsInScreen(r);
-            boolean sizeOk = r.width() >= dm.widthPixels * 0.15f && r.width() <= dm.widthPixels * 0.6f
-                    && r.height() >= dm.heightPi
+    private void collectAll(AccessibilityNodeInfo n, Lis

@@ -11,8 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
-import android.os.Build;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Base64;
@@ -38,8 +38,7 @@ import java.util.UUID;
 
 public class MainActivity extends Activity {
 
-    private static final List<String> TOGGLE_IDS =
-                private static final List<String> TOGGLE_IDS = Arrays.asList(
+    private static final List<String> TOGGLE_IDS = Arrays.asList(
             "data", "airplane", "wifi", "hotspot", "bluetooth", "location",
             "flashlight", "dnd", "rotate", "battery", "nfc", "screenrec",
             "cast", "dark", "sound", "datasaver", "qr", "all");
@@ -342,8 +341,8 @@ public class MainActivity extends Activity {
             vaultUnlocked = false;
             return ok();
         }
-        
-                @JavascriptInterface
+
+        @JavascriptInterface
         public String addCustom(String name) {
             if (guest()) return err("Sedang di mode tamu");
             String n = norm(name);
@@ -378,16 +377,3 @@ public class MainActivity extends Activity {
         public void addTile() {
             runOnUiThread(() -> {
                 if (Build.VERSION.SDK_INT >= 33) {
-                    StatusBarManager sbm = getSystemService(StatusBarManager.class);
-                    sbm.requestAddTileService(new ComponentName(MainActivity.this, AceTile.class),
-                            "Mode ACE", Icon.createWithResource(MainActivity.this, R.drawable.ic_tile),
-                            getMainExecutor(), result -> { });
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Tarik panel ke bawah, tekan ikon pensil, lalu tambahkan Mode ACE",
-                            Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    }
-}
