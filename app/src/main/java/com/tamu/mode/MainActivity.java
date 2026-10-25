@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Base64;
@@ -38,7 +39,10 @@ import java.util.UUID;
 public class MainActivity extends Activity {
 
     private static final List<String> TOGGLE_IDS =
-            Arrays.asList("data", "airplane", "wifi", "hotspot", "bluetooth", "location");
+                private static final List<String> TOGGLE_IDS = Arrays.asList(
+            "data", "airplane", "wifi", "hotspot", "bluetooth", "location",
+            "flashlight", "dnd", "rotate", "battery", "nfc", "screenrec",
+            "cast", "dark", "sound", "datasaver", "qr", "all");
 
     private WebView web;
     private SharedPreferences sp;
@@ -170,6 +174,7 @@ public class MainActivity extends Activity {
                 o.put("service", GuestService.isEnabled(MainActivity.this));
                 o.put("lockedCount", set("locked").size());
                 o.put("toggles", new JSONArray(set("toggles")));
+                o.put("custom", new JSONArray(set("custom_kw")));
                 o.put("question", sp.getString("q", ""));
                 o.put("vaultSet", sp.getString("vault_code", null) != null);
                 o.put("vaultCount", set("vault_apps").size());
@@ -336,6 +341,32 @@ public class MainActivity extends Activity {
             sp.edit().remove("vault_code").remove("vault_apps").remove("vault_open_until").apply();
             vaultUnlocked = false;
             return ok();
+        }
+        
+                @JavascriptInterface
+        public String addCustom(String name) {
+            if (guest()) return err("Sedang di mode tamu");
+            String n = norm(name);
+            if (n.length() < 2) return err("Nama terlalu pendek");
+            Set<String> s = set("custom_kw");
+            s.add(n);
+            sp.edit().putStringSet("custom_kw", s).apply();
+            return ok();
+        }
+
+        @JavascriptInterface
+        public String removeCustom(String name) {
+            if (guest()) return err("Sedang di mode tamu");
+            Set<String> s = set("custom_kw");
+            s.remove(norm(name));
+            sp.edit().putStringSet("custom_kw", s).apply();
+            return ok();
+        }
+
+        @JavascriptInterface
+        public void openLink() {
+            runOnUiThread(() -> startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://my-all-link.vercel.app/"))));
         }
 
         @JavascriptInterface

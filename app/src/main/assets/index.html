@@ -18,13 +18,14 @@ h2{font-size:21px;margin:0 0 6px}
 h3{margin:0 0 6px;font-size:18px}
 p{margin:0 0 12px;line-height:1.5}
 .mu{color:var(--mu);font-size:14px}
+.foot{text-align:center;color:var(--mu);font-size:12px;padding:20px 0 8px}
 .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .brand{font-weight:800;font-size:20px;letter-spacing:1px;display:flex;align-items:center;gap:8px}
 .brand b{background:linear-gradient(135deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .chip{font-size:12px;padding:6px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .dot.off{background:var(--bad);box-shadow:0 0 8px var(--bad)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;backdrop-filter:blur(8px)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
 .warn{border-color:rgba(255,92,122,.4);background:rgba(255,92,122,.08)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .stat{padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);margin:0}
@@ -43,10 +44,11 @@ p{margin:0 0 12px;line-height:1.5}
 .nav button{flex:1;background:none;border:0;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;padding:8px 0;border-radius:14px;transition:.2s}
 .nav button.on{color:var(--a1);background:rgba(79,209,255,.08)}
 .pwwrap{position:relative;width:min(58vw,240px);aspect-ratio:1;margin:22px auto 16px;display:grid;place-items:center}
-.ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(79,209,255,.35);animation:pulse 3.2s ease-out infinite}
+.ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(79,209,255,.35);animation:pulse 3.2s ease-out infinite;pointer-events:none}
 .ring.r2{animation-delay:1.6s}
 @keyframes pulse{0%{transform:scale(.72);opacity:.9}100%{transform:scale(1.3);opacity:0}}
-.power{width:72%;aspect-ratio:1;border-radius:50%;border:0;color:#CFE0FF;background:linear-gradient(145deg,#2B3566,#171E40);box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 7px rgba(255,255,255,.04);display:grid;place-items:center;transition:all .5s}
+.power{position:relative;z-index:2;width:72%;aspect-ratio:1;border-radius:50%;border:0;color:#CFE0FF;background:linear-gradient(145deg,#2B3566,#171E40);box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 7px rgba(255,255,255,.04);display:grid;place-items:center;transition:all .5s;cursor:pointer}
+.power svg{pointer-events:none}
 .power:active{transform:scale(.94)}
 .pwwrap.act .power{background:linear-gradient(145deg,#2DE2A6,#15A9FF);color:#fff;box-shadow:0 0 70px rgba(45,226,166,.6),inset 0 1px 0 rgba(255,255,255,.4)}
 .pwwrap.act .power svg{animation:pop .7s}
@@ -57,9 +59,9 @@ p{margin:0 0 12px;line-height:1.5}
 @keyframes burst{to{transform:translate(-50%,-50%) scale(70);opacity:0}}
 .shake{animation:shake .4s}
 @keyframes shake{20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
-.gate{display:flex;flex-direction:column;justify-content:center;min-height:100%}
+.gate{display:flex;flex-direction:column;justify-content:center;min-height:90%}
 .lockbig{position:relative;width:130px;height:130px;margin:0 auto 20px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#3A2A7A,#1A1F4A);color:#fff;box-shadow:0 0 50px rgba(124,92,255,.45);transition:all .5s}
-.lockbig:before,.lockbig:after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(124,92,255,.5);animation:pulse 3s ease-out infinite}
+.lockbig:before,.lockbig:after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(124,92,255,.5);animation:pulse 3s ease-out infinite;pointer-events:none}
 .lockbig:after{animation-delay:1.5s}
 .lockbig.ok{background:linear-gradient(145deg,#2DE2A6,#15A9FF);box-shadow:0 0 60px rgba(45,226,166,.6)}
 .lockbig.ok svg{animation:pop .7s}
@@ -80,13 +82,16 @@ p{margin:0 0 12px;line-height:1.5}
 .sw input:checked+i:after{transform:translateX(20px)}
 .pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:12px;background:rgba(79,209,255,.12);color:var(--a1)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
-.tile{padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:12px;transition:.25s;position:relative}
-.tile .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.07);transition:.25s}
+.tile{padding:14px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px;transition:.25s;position:relative}
+.tile .ic{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.07);transition:.25s}
 .tile.on{border-color:rgba(79,209,255,.6);background:rgba(79,209,255,.09);box-shadow:0 0 24px rgba(79,209,255,.15)}
 .tile.on .ic{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff}
 .tile small{color:var(--mu);font-size:12px}
 .tile .lk{position:absolute;right:12px;top:12px;color:var(--a1);opacity:0;transition:.25s}
 .tile.on .lk{opacity:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chipx{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:rgba(79,209,255,.12);color:var(--a1);font-size:14px}
+.chipx button{background:none;border:0;color:inherit;padding:0;display:grid}
 .item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:18px;background:var(--card);border:1px solid var(--line);margin-bottom:10px;width:100%;color:var(--tx);text-align:left;font-size:16px}
 .item .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(79,209,255,.2),rgba(124,92,255,.25));color:var(--a1);flex:none}
 .item div{flex:1}.item small{display:block;color:var(--mu);font-size:12px;margin-top:2px}
@@ -109,6 +114,7 @@ const A = window.Ace;
 const J = s => JSON.parse(s);
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const foot = () => `<div class="foot">@ACE (ArilCode Engineer) © ${new Date().getFullYear()}</div>`;
 const P = {
   home:'<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
   apps:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
@@ -125,23 +131,41 @@ const P = {
   hotspot:'<circle cx="12" cy="12" r="2"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
   bluetooth:'<path d="M7 7l10 10-5 5V2l5 5L7 17"/>',
   location:'<path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+  flashlight:'<path d="M9 2h6v5l-1 3v12h-4V10L9 7z"/>',
+  dnd:'<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+  rotate:'<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>',
+  battery:'<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2M6 10v4"/>',
+  nfc:'<path d="M6 8a8 8 0 0 1 0 8M10 6a12 12 0 0 1 0 12M14 4a16 16 0 0 1 0 16"/>',
+  screenrec:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
+  cast:'<path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M2 12a9 9 0 0 1 8 8M2 16a5 5 0 0 1 4 4"/>',
+  dark:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  sound:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9a4 4 0 0 1 0 6"/>',
+  datasaver:'<path d="M12 3v12M7 11l5 5 5-5M5 21h14"/>',
+  qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-4"/>',
   key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>',
   eyeoff:'<path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-3 3.6M6.5 7.5A16 16 0 0 0 2.5 12S6 18 12 18c1.5 0 2.8-.4 4-1"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
   chev:'<path d="M9 6l6 6-6 6"/>',
   back:'<path d="M15 6l-6 6 6 6"/>',
   tile:'<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/>',
-  access:'<circle cx="12" cy="4.5" r="2"/><path d="M5 8h14M12 8v6M8 21l4-7 4 7"/>'
+  access:'<circle cx="12" cy="4.5" r="2"/><path d="M5 8h14M12 8v6M8 21l4-7 4 7"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'
 };
 const ico = (n, s = 24) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
 
 let st = {}, tab = 'home', sub = null, apps = null, q = '', sheetOpen = false;
 const TOG = [
   {id:'data', n:'Data seluler'}, {id:'airplane', n:'Mode pesawat'}, {id:'wifi', n:'Wi-Fi'},
-  {id:'hotspot', n:'Hotspot'}, {id:'bluetooth', n:'Bluetooth'}, {id:'location', n:'Lokasi'}
+  {id:'hotspot', n:'Hotspot'}, {id:'bluetooth', n:'Bluetooth'}, {id:'location', n:'Lokasi'},
+  {id:'flashlight', n:'Senter'}, {id:'dnd', n:'Jangan ganggu'}, {id:'rotate', n:'Rotasi otomatis'},
+  {id:'battery', n:'Hemat baterai'}, {id:'nfc', n:'NFC'}, {id:'screenrec', n:'Perekam layar'},
+  {id:'cast', n:'Cast / Pantulan layar'}, {id:'dark', n:'Mode gelap'}, {id:'sound', n:'Suara / Senyap'},
+  {id:'datasaver', n:'Penghemat data'}, {id:'qr', n:'Pemindai QR'}
 ];
 
-function refresh() { st = J(A.state()); render(); }
+function refresh() { st = J(A.state()); if (!st.custom) st.custom = []; render(); }
 window.refresh = refresh;
 window.onBack = function () {
   if (sheetOpen) { closeSheet(); return true; }
@@ -152,7 +176,7 @@ window.onBack = function () {
 
 function toast(m) {
   const t = $('#toast'); t.textContent = m; t.classList.add('show');
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2400);
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600);
 }
 function shake(sel) { const e = $(sel); if (!e) return; e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake'); }
 function burst(green) {
@@ -191,7 +215,7 @@ function renderSetup() {
   <input id="s_q" class="inp" type="text" placeholder="Pertanyaan keamanan (mis. Nama hewan pertama?)">
   <input id="s_a" class="inp" type="password" placeholder="Jawaban pertanyaan">
   <div class="err" id="serr"></div>
-  <button class="btn" onclick="doSetup()">Mulai</button></div>`;
+  <button class="btn" onclick="doSetup()">Mulai</button>${foot()}</div>`;
 }
 function doSetup() {
   if ($('#s_pin').value !== $('#s_pin2').value) { $('#serr').textContent = 'Kode tidak sama'; return; }
@@ -208,7 +232,7 @@ function renderGate() {
   <input id="g_pin" class="inp" type="password" placeholder="Kode awal" onkeydown="if(event.key==='Enter')doOff()">
   <div class="err" id="serr"></div>
   <button class="btn" onclick="doOff()">Nonaktifkan mode tamu</button>
-  <button class="link" onclick="forgotPin()">Lupa kode?</button></div></div>`;
+  <button class="link" onclick="forgotPin()">Lupa kode?</button></div>${foot()}</div>`;
 }
 function doOff() {
   const r = J(A.deactivate($('#g_pin').value));
@@ -225,25 +249,26 @@ function forgotPin() {
 
 function renderMain() {
   const nav = `<div class="nav">${[['home','Beranda'],['apps','Aplikasi'],['panel','Panel'],['menu','Menu']].map(t => `<button class="${tab === t[0] ? 'on' : ''}" onclick="go('${t[0]}')">${ico(t[0], 22)}${t[1]}</button>`).join('')}</div>`;
-  let body = sub === 'vault' ? vaultV() : tab === 'home' ? homeV() : tab === 'apps' ? appsV() : tab === 'panel' ? panelV() : menuV();
-  $('#app').innerHTML = `<div class="page" id="page">${body}</div>${sub ? '' : nav}`;
+  let body = sub === 'vault' ? vaultV() : sub === 'about' ? aboutV() : tab === 'home' ? homeV() : tab === 'apps' ? appsV() : tab === 'panel' ? panelV() : menuV();
+  $('#app').innerHTML = `<div class="page" id="page">${body}${foot()}</div>${sub ? '' : nav}`;
   if ((tab === 'apps' && !sub) || (sub === 'vault' && st.vaultUnlocked)) loadList(sub === 'vault' ? 'v' : 'l');
+  const pw = $('#pw'); if (pw) pw.addEventListener('click', doOn);
 }
 function go(t) { tab = t; sub = null; q = ''; render(); }
 
 function homeV() {
   return `<div class="top"><div class="brand">${ico('shield', 26)}<b>ACE</b></div>
   <div class="chip"><span class="dot ${st.service ? '' : 'off'}"></span>${st.service ? 'Penjaga aktif' : 'Penjaga mati'}</div></div>
-  <div class="pwwrap" id="pwwrap"><div class="ring"></div><div class="ring r2"></div><button class="power" id="pw" onclick="doOn()">${ico('power', 78)}</button></div>
+  <div class="pwwrap" id="pwwrap"><div class="ring"></div><div class="ring r2"></div><button type="button" class="power" id="pw">${ico('power', 78)}</button></div>
   <h2 style="text-align:center">Mode Owner</h2>
-  <p class="mu" style="text-align:center">Semua aplikasi terbuka. Ketuk tombol untuk masuk ke mode tamu.</p>
+  <p class="mu" style="text-align:center">Ketuk tombol power untuk masuk ke mode tamu.</p>
   ${!st.service ? `<div class="card warn"><b>Layanan penjaga belum aktif</b><p class="mu" style="margin:6px 0 12px">Aktifkan Mode ACE di Aksesibilitas agar pemblokiran berjalan.</p><button class="btn sm" onclick="A.openAccessibility()">Buka Aksesibilitas</button></div>` : ''}
   <div class="grid2"><div class="stat" onclick="go('apps')"><b>${st.lockedCount}</b><span>Aplikasi dikunci</span></div>
-  <div class="stat" onclick="go('panel')"><b>${st.toggles.length}</b><span>Panel dikunci</span></div></div>`;
+  <div class="stat" onclick="go('panel')"><b>${st.toggles.length + st.custom.length}</b><span>Panel dikunci</span></div></div>`;
 }
 function doOn() {
   const r = J(A.activate());
-  if (!r.ok) { shake('#pwwrap'); toast(r.msg); if (r.go) setTimeout(() => go(r.go), 700); return; }
+  if (!r.ok) { shake('#pwwrap'); toast(r.msg); if (r.go) setTimeout(() => go(r.go), 900); return; }
   $('#pwwrap').classList.add('act'); burst(false);
   setTimeout(refresh, 1100);
 }
@@ -268,17 +293,33 @@ function tgl(p, on, mode, el) {
   const r = J(mode === 'l' ? A.setLocked(p, on) : A.vaultSetApp(p, on));
   if (!r.ok) { toast(r.msg); el.checked = !on; return; }
   apps.find(x => x.p === p)[mode] = on;
-  st = J(A.state());
+  st = J(A.state()); if (!st.custom) st.custom = [];
   const c = $('#cnt'); if (c) c.textContent = mode === 'l' ? st.lockedCount + ' dikunci' : st.vaultCount + ' disembunyikan';
 }
 
 function panelV() {
-  return `<h1>Panel Cepat</h1><p class="mu">Pilih tombol yang tidak bisa dipakai saat mode tamu. Yang tidak dipilih tetap bebas.</p>
-  <div class="tiles">${TOG.map(t => { const on = st.toggles.includes(t.id); return `<div class="tile ${on ? 'on' : ''}" onclick="tglPanel('${t.id}',${!on})"><span class="lk">${ico('lock', 16)}</span><div class="ic">${ico(t.id, 24)}</div><div><b>${t.n}</b><br><small>${on ? 'Dikunci' : 'Bebas'}</small></div></div>`; }).join('')}</div>
-  <div class="card"><p class="mu" style="margin:0">Pemblokiran dibaca dari tampilan panel HP, jadi bisa berbeda di tiap HP. Jika ada tombol yang lolos, kabari saya nama tombolnya.</p></div>`;
+  const allOn = st.toggles.includes('all');
+  return `<h1>Panel Cepat</h1><p class="mu">Pilih tombol panel yang tidak bisa dipakai saat mode tamu. Yang tidak dipilih tetap bebas.</p>
+  <div class="card" style="display:flex;align-items:center;gap:12px"><div style="flex:1"><b>Kunci semua tombol</b><br><small class="mu">Semua tombol di panel HP ditutup</small></div>
+  <label class="sw"><input type="checkbox" ${allOn ? 'checked' : ''} onchange="tglPanel('all',this.checked)"><i></i></label></div>
+  <div class="tiles">${TOG.map(t => { const on = st.toggles.includes(t.id); return `<div class="tile ${on ? 'on' : ''}" onclick="tglPanel('${t.id}',${!on})"><span class="lk">${ico('lock', 16)}</span><div class="ic">${ico(t.id, 22)}</div><div><b style="font-size:14px">${t.n}</b><br><small>${on ? 'Dikunci' : 'Bebas'}</small></div></div>`; }).join('')}</div>
+  <h3>Tombol lain</h3>
+  <p class="mu">Android tidak memberi daftar tombol panel ke aplikasi. Kalau ada tombol di HP Anda yang belum ada di atas, ketik namanya persis seperti di panel (mis. Senter).</p>
+  <div class="chips">${st.custom.map(c => `<span class="chipx">${esc(c)}<button onclick="rmCustom(this.dataset.n)" data-n="${esc(c)}">${ico('x', 16)}</button></span>`).join('')}</div>
+  <div class="row"><input id="cst" class="inp" type="text" placeholder="Nama tombol" style="margin:0"><button class="btn sm" onclick="addCustom()">${ico('plus', 20)}</button></div>
+  <div class="card" style="margin-top:12px"><p class="mu" style="margin:0">Pemblokiran dibaca dari tampilan panel HP, jadi bisa berbeda di tiap HP. Jika ada yang lolos, kabari saya.</p></div>`;
 }
 function tglPanel(id, on) {
   const r = J(A.setToggle(id, on)); if (!r.ok) return toast(r.msg);
+  st = J(A.state()); if (!st.custom) st.custom = []; render();
+}
+function addCustom() {
+  const v = $('#cst').value.trim(); if (!v) return;
+  const r = J(A.addCustom(v)); if (!r.ok) return toast(r.msg);
+  st = J(A.state()); render();
+}
+function rmCustom(n) {
+  const r = J(A.removeCustom(n)); if (!r.ok) return toast(r.msg);
   st = J(A.state()); render();
 }
 
@@ -289,11 +330,19 @@ function menuV() {
   ${it('key', 'Ubah kode awal', 'Perlu kode awal lama', 'changePin()')}
   ${it('access', 'Layanan aksesibilitas', st.service ? 'Aktif' : 'Belum aktif, ketuk untuk membuka', 'A.openAccessibility()')}
   ${it('tile', 'Tambah ke panel cepat', 'Ikon Mode ACE di deretan tombol atas', 'A.addTile()')}
-  ${it('info', 'Tentang', 'Mode ACE 1.0', "toast('Mode ACE 1.0')")}`;
+  ${it('info', 'Tentang', 'Tentang aplikasi dan link', "openAbout()")}`;
 }
 function changePin() {
   sheet({title:'Ubah kode awal', fields:[{id:'o', ph:'Kode awal lama'}, {id:'n', ph:'Kode baru (min. 4)'}],
     onOk: v => { const r = J(A.changePin(v.o, v.n)); if (r.ok) toast('Kode diubah'); return R(r); }});
+}
+
+function openAbout() { sub = 'about'; render(); }
+function aboutV() {
+  const back = `<button class="back" onclick="window.onBack();">${ico('back', 20)} Kembali</button>`;
+  return `${back}<div style="text-align:center;margin:6px 0 22px"><div class="lockbig in" style="width:100px;height:100px">${ico('shield', 46)}</div><h1>Mode ACE</h1><p class="mu">Versi 1.0</p></div>
+  <div class="card"><p style="margin:0">Mode ACE membantu menjaga HP saat dipinjam orang. Pilih aplikasi dan tombol panel yang dikunci, lalu aktifkan mode tamu. Hanya pemilik dengan kode yang bisa menonaktifkannya. Brankas menyimpan aplikasi yang dikunci dengan kode unik tersendiri.</p></div>
+  <button class="item" onclick="A.openLink()"><span class="ic">${ico('link', 22)}</span><div>Link ArilCode<small>my-all-link.vercel.app</small></div><span style="color:var(--mu)">${ico('chev', 18)}</span></button>`;
 }
 
 function openVault() { sub = 'vault'; q = ''; render(); }
