@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         sp = getSharedPreferences("tamu", MODE_PRIVATE);
+        salt();
 
         web = new WebView(this);
         web.setBackgroundColor(0xFF0B1020);
@@ -162,24 +163,41 @@ public class MainActivity extends Activity {
         return c;
     }
 
+    private void requestTile(Class<?> cls, String label, int iconRes) {
+        runOnUiThread(() -> {
+            if (Build.VERSION.SDK_INT >= 33) {
+                StatusBarManager sbm = getSystemService(StatusBarManager.class);
+                sbm.requestAddTileService(new ComponentName(this, cls), label,
+                        Icon.createWithResource(this, iconRes), getMainExecutor(), result -> { });
+            } else {
+                Toast.makeText(this,
+                        "Tarik panel ke bawah, tekan ikon pensil, lalu tambahkan " + label,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private class Bridge {
 
         @JavascriptInterface
         public String state() {
             try {
+                Set<String> customAll = set("custom_all");
+                customAll.addAll(set("custom_kw"));
+
                 JSONObject o = new JSONObject();
                 o.put("setup", sp.getString("pin", null) != null);
                 o.put("guest", guest());
                 o.put("service", GuestService.isEnabled(MainActivity.this));
+                o.put("canWrite", Settings.System.canWrite(MainActivity.this));
                 o.put("lockedCount", set("locked").size());
                 o.put("toggles", new JSONArray(set("toggles")));
-                o.put("custom", new JSONArray(set("custom_kw")));
+                o.put("custom", new JSONArray(customAll));
+                o.put("customOn", new JSONArray(set("custom_kw")));
                 o.put("question", sp.getString("q", ""));
                 o.put("vaultSet", sp.getString("vault_code", null) != null);
                 o.put("vaultCount", set("vault_apps").size());
                 o.put("vaultUnlocked", vaultUnlocked && !guest());
-                o.put("vaultOpenUntil", sp.getLong("vault_open_until", 0));
-                o.put("now", System.currentTimeMillis());
                 return o.toString();
             } catch (Exception e) {
                 return "{}";
@@ -246,6 +264,40 @@ public class MainActivity extends Activity {
             return ok();
         }
 
+        // Menambah nama tombol saja, belum aktif
+        @JavascriptInterface
+        public String addCustom(String name) {
+            if (guest()) return err("Sedang di mode tamu");
+            String n = norm(name);
+            if (n.length() < 2) return err("Nama terlalu pendek");
+            Set<String> s = set("custom_all");
+            s.add(n);
+            sp.edit().putStringSet("custom_all", s).apply();
+            return ok();
+        }
+
+        @JavascriptInterface
+        public String setCustomActive(String name, boolean on) {
+            if (guest()) return err("Sedang di mode tamu");
+            String n = norm(name);
+            Set<String> s = set("custom_kw");
+            if (on) s.add(n); else s.remove(n);
+            sp.edit().putStringSet("custom_kw", s).apply();
+            return ok();
+        }
+
+        @JavascriptInterface
+        public String removeCustom(String name) {
+            if (guest()) return err("Sedang di mode tamu");
+            String n = norm(name);
+            Set<String> a = set("custom_all");
+            Set<String> k = set("custom_kw");
+            a.remove(n);
+            k.remove(n);
+            sp.edit().putStringSet("custom_all", a).putStringSet("custom_kw", k).apply();
+            return ok();
+        }
+
         @JavascriptInterface
         public String activate() {
             if (sp.getString("pin", null) == null) return err("Buat kode dulu");
@@ -289,6 +341,8 @@ public class MainActivity extends Activity {
             return ok();
         }
 
+        // ----- Brankas aplikasi -----
+
         @JavascriptInterface
         public String vaultSetup(String code) {
             if (guest()) return err("Sedang di mode tamu");
@@ -317,14 +371,6 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public String vaultGrant(int minutes) {
-            if (guest() || !vaultUnlocked) return err("Brankas terkunci");
-            long until = minutes > 0 ? System.currentTimeMillis() + minutes * 60000L : 0;
-            sp.edit().putLong("vault_open_until", until).apply();
-            return ok();
-        }
-
-        @JavascriptInterface
         public String vaultChange(String oldCode, String newCode) {
             if (guest()) return err("Sedang di mode tamu");
             if (!check("vault_code", oldCode)) return err("Kode unik lama salah");
@@ -337,30 +383,12 @@ public class MainActivity extends Activity {
         public String vaultForgot(String answer) {
             if (guest()) return err("Sedang di mode tamu");
             if (!check("a", norm(answer))) return err("Jawaban salah");
-            sp.edit().remove("vault_code").remove("vault_apps").remove("vault_open_until").apply();
+            sp.edit().remove("vault_code").remove("vault_apps").remove("vault_ok").apply();
             vaultUnlocked = false;
             return ok();
         }
 
-        @JavascriptInterface
-        public String addCustom(String name) {
-            if (guest()) return err("Sedang di mode tamu");
-            String n = norm(name);
-            if (n.length() < 2) return err("Nama terlalu pendek");
-            Set<String> s = set("custom_kw");
-            s.add(n);
-            sp.edit().putStringSet("custom_kw", s).apply();
-            return ok();
-        }
-
-        @JavascriptInterface
-        public String removeCustom(String name) {
-            if (guest()) return err("Sedang di mode tamu");
-            Set<String> s = set("custom_kw");
-            s.remove(norm(name));
-            sp.edit().putStringSet("custom_kw", s).apply();
-            return ok();
-        }
+        // ----- Lain-lain -----
 
         @JavascriptInterface
         public void openLink() {
@@ -374,19 +402,19 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void openWriteSettings() {
+            runOnUiThread(() -> startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + getPackageName()))));
+        }
+
+        @JavascriptInterface
         public void addTile() {
-            runOnUiThread(() -> {
-                if (Build.VERSION.SDK_INT >= 33) {
-                    StatusBarManager sbm = getSystemService(StatusBarManager.class);
-                    sbm.requestAddTileService(new ComponentName(MainActivity.this, AceTile.class),
-                            "Mode ACE", Icon.createWithResource(MainActivity.this, R.drawable.ic_tile),
-                            getMainExecutor(), result -> { });
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Tarik panel ke bawah, tekan ikon pensil, lalu tambahkan Mode ACE",
-                            Toast.LENGTH_LONG).show();
-                }
-            });
+            requestTile(AceTile.class, "Mode ACE", R.drawable.ic_tile);
+        }
+
+        @JavascriptInterface
+        public void addScreenTile() {
+            requestTile(ScreenTile.class, "Layar on/off", R.drawable.ic_screen);
         }
     }
 }

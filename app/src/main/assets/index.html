@@ -70,6 +70,7 @@ p{margin:0 0 12px;line-height:1.5}
 .search{display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin:10px 0}
 .search input{flex:1;background:none;border:0;outline:0;color:var(--tx);font-size:16px;padding:14px 0;-webkit-user-select:text;user-select:text}
 .app{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);margin-bottom:8px}
+.app.on{border-color:rgba(79,209,255,.5);background:rgba(79,209,255,.07)}
 .app img{width:42px;height:42px;border-radius:10px;flex:none;background:#222}
 .an{flex:1;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sk{height:62px;border-radius:16px;margin-bottom:8px;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.1),rgba(255,255,255,.04));background-size:200% 100%;animation:sh 1.2s infinite}
@@ -89,9 +90,7 @@ p{margin:0 0 12px;line-height:1.5}
 .tile small{color:var(--mu);font-size:12px}
 .tile .lk{position:absolute;right:12px;top:12px;color:var(--a1);opacity:0;transition:.25s}
 .tile.on .lk{opacity:1}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.chipx{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:rgba(79,209,255,.12);color:var(--a1);font-size:14px}
-.chipx button{background:none;border:0;color:inherit;padding:0;display:grid}
+.del{position:absolute;right:8px;bottom:8px;width:28px;height:28px;border-radius:10px;border:0;background:rgba(255,255,255,.08);color:var(--mu);display:grid;place-items:center;padding:0}
 .item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:18px;background:var(--card);border:1px solid var(--line);margin-bottom:10px;width:100%;color:var(--tx);text-align:left;font-size:16px}
 .item .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(79,209,255,.2),rgba(124,92,255,.25));color:var(--a1);flex:none}
 .item div{flex:1}.item small{display:block;color:var(--mu);font-size:12px;margin-top:2px}
@@ -142,8 +141,9 @@ const P = {
   sound:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9a4 4 0 0 1 0 6"/>',
   datasaver:'<path d="M12 3v12M7 11l5 5 5-5M5 21h14"/>',
   qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-4"/>',
+  screen:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>',
-  eyeoff:'<path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-3 3.6M6.5 7.5A16 16 0 0 0 2.5 12S6 18 12 18c1.5 0 2.8-.4 4-1"/>',
+  eyeoff:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
   chev:'<path d="M9 6l6 6-6 6"/>',
   back:'<path d="M15 6l-6 6 6 6"/>',
@@ -165,7 +165,8 @@ const TOG = [
   {id:'datasaver', n:'Penghemat data'}, {id:'qr', n:'Pemindai QR'}
 ];
 
-function refresh() { st = J(A.state()); if (!st.custom) st.custom = []; render(); }
+function reload() { st = J(A.state()); st.custom = st.custom || []; st.customOn = st.customOn || []; st.toggles = st.toggles || []; }
+function refresh() { reload(); render(); }
 window.refresh = refresh;
 window.onBack = function () {
   if (sheetOpen) { closeSheet(); return true; }
@@ -264,7 +265,7 @@ function homeV() {
   <p class="mu" style="text-align:center">Ketuk tombol power untuk masuk ke mode tamu.</p>
   ${!st.service ? `<div class="card warn"><b>Layanan penjaga belum aktif</b><p class="mu" style="margin:6px 0 12px">Aktifkan Mode ACE di Aksesibilitas agar pemblokiran berjalan.</p><button class="btn sm" onclick="A.openAccessibility()">Buka Aksesibilitas</button></div>` : ''}
   <div class="grid2"><div class="stat" onclick="go('apps')"><b>${st.lockedCount}</b><span>Aplikasi dikunci</span></div>
-  <div class="stat" onclick="go('panel')"><b>${st.toggles.length + st.custom.length}</b><span>Panel dikunci</span></div></div>`;
+  <div class="stat" onclick="go('panel')"><b>${st.toggles.length + st.customOn.length}</b><span>Panel dikunci</span></div></div>`;
 }
 function doOn() {
   const r = J(A.activate());
@@ -285,16 +286,18 @@ function loadList(mode) {
 }
 function listHTML(mode) {
   const f = apps.filter(a => a.n.toLowerCase().includes(q.toLowerCase()));
+  f.sort((a, b) => (+!!b[mode]) - (+!!a[mode]) || a.n.localeCompare(b.n));
   if (!f.length) return '<p class="mu" style="text-align:center;margin-top:30px">Tidak ada aplikasi</p>';
-  return f.map(a => `<div class="app"><img src="data:image/png;base64,${a.i}"><div class="an">${esc(a.n)}</div><label class="sw"><input type="checkbox" ${a[mode] ? 'checked' : ''} onchange="tgl('${a.p}',this.checked,'${mode}',this)"><i></i></label></div>`).join('');
+  return f.map(a => `<div class="app ${a[mode] ? 'on' : ''}"><img src="data:image/png;base64,${a.i}"><div class="an">${esc(a.n)}</div><label class="sw"><input type="checkbox" ${a[mode] ? 'checked' : ''} onchange="tgl('${a.p}',this.checked,'${mode}',this)"><i></i></label></div>`).join('');
 }
 function onQ(v, mode) { q = v; $('#list').innerHTML = listHTML(mode); }
 function tgl(p, on, mode, el) {
   const r = J(mode === 'l' ? A.setLocked(p, on) : A.vaultSetApp(p, on));
   if (!r.ok) { toast(r.msg); el.checked = !on; return; }
   apps.find(x => x.p === p)[mode] = on;
-  st = J(A.state()); if (!st.custom) st.custom = [];
-  const c = $('#cnt'); if (c) c.textContent = mode === 'l' ? st.lockedCount + ' dikunci' : st.vaultCount + ' disembunyikan';
+  reload();
+  const c = $('#cnt'); if (c) c.textContent = mode === 'l' ? st.lockedCount + ' dikunci' : st.vaultCount + ' dikunci kode';
+  setTimeout(() => { const l = $('#list'); if (l) l.innerHTML = listHTML(mode); }, 260);
 }
 
 function panelV() {
@@ -303,33 +306,39 @@ function panelV() {
   <div class="card" style="display:flex;align-items:center;gap:12px"><div style="flex:1"><b>Kunci semua tombol</b><br><small class="mu">Semua tombol di panel HP ditutup</small></div>
   <label class="sw"><input type="checkbox" ${allOn ? 'checked' : ''} onchange="tglPanel('all',this.checked)"><i></i></label></div>
   <div class="tiles">${TOG.map(t => { const on = st.toggles.includes(t.id); return `<div class="tile ${on ? 'on' : ''}" onclick="tglPanel('${t.id}',${!on})"><span class="lk">${ico('lock', 16)}</span><div class="ic">${ico(t.id, 22)}</div><div><b style="font-size:14px">${t.n}</b><br><small>${on ? 'Dikunci' : 'Bebas'}</small></div></div>`; }).join('')}</div>
-  <h3>Tombol lain</h3>
-  <p class="mu">Android tidak memberi daftar tombol panel ke aplikasi. Kalau ada tombol di HP Anda yang belum ada di atas, ketik namanya persis seperti di panel (mis. Senter).</p>
-  <div class="chips">${st.custom.map(c => `<span class="chipx">${esc(c)}<button onclick="rmCustom(this.dataset.n)" data-n="${esc(c)}">${ico('x', 16)}</button></span>`).join('')}</div>
+  <h3>Tombol tambahan</h3>
+  <p class="mu">Ketik nama tombol seperti di panel HP Anda lalu tekan +. Menambah belum mengunci, ketuk tombolnya untuk mengaktifkan.</p>
+  ${st.custom.length ? `<div class="tiles">${st.custom.map(c => { const on = st.customOn.includes(c); return `<div class="tile ${on ? 'on' : ''}" data-n="${esc(c)}" onclick="tglCustom(this.dataset.n,${!on})"><span class="lk">${ico('lock', 16)}</span><div class="ic">${ico('tile', 22)}</div><div><b style="font-size:14px;text-transform:capitalize">${esc(c)}</b><br><small>${on ? 'Dikunci' : 'Bebas'}</small></div><button class="del" onclick="event.stopPropagation();rmCustom(this.parentNode.dataset.n)">${ico('x', 14)}</button></div>`; }).join('')}</div>` : ''}
   <div class="row"><input id="cst" class="inp" type="text" placeholder="Nama tombol" style="margin:0"><button class="btn sm" onclick="addCustom()">${ico('plus', 20)}</button></div>
   <div class="card" style="margin-top:12px"><p class="mu" style="margin:0">Pemblokiran dibaca dari tampilan panel HP, jadi bisa berbeda di tiap HP. Jika ada yang lolos, kabari saya.</p></div>`;
 }
 function tglPanel(id, on) {
   const r = J(A.setToggle(id, on)); if (!r.ok) return toast(r.msg);
-  st = J(A.state()); if (!st.custom) st.custom = []; render();
+  reload(); render();
 }
 function addCustom() {
   const v = $('#cst').value.trim(); if (!v) return;
   const r = J(A.addCustom(v)); if (!r.ok) return toast(r.msg);
-  st = J(A.state()); render();
+  reload(); render(); toast('Ditambahkan. Ketuk tombolnya untuk mengaktifkan');
+}
+function tglCustom(n, on) {
+  const r = J(A.setCustomActive(n, on)); if (!r.ok) return toast(r.msg);
+  reload(); render();
 }
 function rmCustom(n) {
   const r = J(A.removeCustom(n)); if (!r.ok) return toast(r.msg);
-  st = J(A.state()); render();
+  reload(); render();
 }
 
 function menuV() {
   const it = (ic, t, s, fn) => `<button class="item" onclick="${fn}"><span class="ic">${ico(ic, 22)}</span><div>${t}<small>${s}</small></div><span style="color:var(--mu)">${ico('chev', 18)}</span></button>`;
   return `<h1>Menu</h1><p class="mu">Pengaturan lainnya</p>
-  ${it('eyeoff', 'Sembunyikan Aplikasi (Brankas)', st.vaultCount + ' aplikasi di brankas', "openVault()")}
+  ${it('eyeoff', 'Brankas Aplikasi', st.vaultCount + ' aplikasi dikunci kode unik', "openVault()")}
   ${it('key', 'Ubah kode awal', 'Perlu kode awal lama', 'changePin()')}
   ${it('access', 'Layanan aksesibilitas', st.service ? 'Aktif' : 'Belum aktif, ketuk untuk membuka', 'A.openAccessibility()')}
-  ${it('tile', 'Tambah ke panel cepat', 'Ikon Mode ACE di deretan tombol atas', 'A.addTile()')}
+  ${it('tile', 'Tambah ke panel cepat: Mode ACE', 'Ikon Mode ACE di deretan tombol atas', 'A.addTile()')}
+  ${it('screen', 'Tambah ke panel cepat: Layar on/off', 'On = layar tidak pernah tidur', 'A.addScreenTile()')}
+  ${it('key', 'Izin ubah pengaturan sistem', st.canWrite ? 'Sudah diizinkan' : 'Perlu untuk Layar on/off, ketuk untuk izinkan', 'A.openWriteSettings()')}
   ${it('info', 'Tentang', 'Tentang aplikasi dan link', "openAbout()")}`;
 }
 function changePin() {
@@ -341,25 +350,24 @@ function openAbout() { sub = 'about'; render(); }
 function aboutV() {
   const back = `<button class="back" onclick="window.onBack();">${ico('back', 20)} Kembali</button>`;
   return `${back}<div style="text-align:center;margin:6px 0 22px"><div class="lockbig in" style="width:100px;height:100px">${ico('shield', 46)}</div><h1>Mode ACE</h1><p class="mu">Versi 1.0</p></div>
-  <div class="card"><p style="margin:0">Mode ACE membantu menjaga HP saat dipinjam orang. Pilih aplikasi dan tombol panel yang dikunci, lalu aktifkan mode tamu. Hanya pemilik dengan kode yang bisa menonaktifkannya. Brankas menyimpan aplikasi yang dikunci dengan kode unik tersendiri.</p></div>
+  <div class="card"><p style="margin:0">Mode ACE membantu menjaga HP saat dipinjam orang. Pilih aplikasi dan tombol panel yang dikunci, lalu aktifkan mode tamu. Hanya pemilik dengan kode yang bisa menonaktifkannya. Brankas meminta kode unik setiap aplikasi pilihan dibuka.</p></div>
   <button class="item" onclick="A.openLink()"><span class="ic">${ico('link', 22)}</span><div>Link ArilCode<small>my-all-link.vercel.app</small></div><span style="color:var(--mu)">${ico('chev', 18)}</span></button>`;
 }
 
 function openVault() { sub = 'vault'; q = ''; render(); }
 function vaultV() {
   const back = `<button class="back" onclick="window.onBack();">${ico('back', 20)} Kembali</button>`;
-  const note = `<div class="card"><p class="mu" style="margin:0">Aplikasi di brankas selalu diblokir, di mode owner juga, sampai Anda membuka akses sementara. Ikonnya tetap terlihat karena Android tidak mengizinkan aplikasi biasa menyembunyikan ikon.</p></div>`;
-  if (!st.vaultSet) return `${back}<h1>Buat kode unik</h1><p class="mu">Kode ini hanya untuk membuka brankas.</p>${note}
+  const note = `<div class="card"><p class="mu" style="margin:0">Aplikasi yang dicentang di sini meminta kode unik setiap kali dibuka, dan meminta lagi setelah Anda keluar dari aplikasinya.</p></div>`;
+  if (!st.vaultSet) return `${back}<h1>Buat kode unik</h1><p class="mu">Kode ini dipakai untuk membuka aplikasi di brankas.</p>${note}
     <input id="v1" class="inp" type="password" placeholder="Kode unik (min. 4)"><input id="v2" class="inp" type="password" placeholder="Ulangi kode unik"><div class="err" id="serr"></div>
     <button class="btn" onclick="vaultCreate()">Buat kode unik</button>`;
-  if (!st.vaultUnlocked) return `${back}<h1>Brankas terkunci</h1><p class="mu">Masukkan kode unik.</p>
+  if (!st.vaultUnlocked) return `${back}<h1>Brankas terkunci</h1><p class="mu">Masukkan kode unik untuk mengatur brankas.</p>
     <input id="v1" class="inp" type="password" placeholder="Kode unik" onkeydown="if(event.key==='Enter')vaultEnter()"><div class="err" id="serr"></div>
     <button class="btn" onclick="vaultEnter()">Buka brankas</button><button class="link" onclick="vaultForgot()">Lupa kode unik?</button>`;
-  const open = st.vaultOpenUntil > st.now;
   return `${back}<h1>Brankas</h1>${note}
-  <div class="row" style="margin-bottom:10px"><button class="btn sm" style="flex:1" onclick="grant(${open ? 0 : 10})">${open ? 'Kunci lagi sekarang' : 'Buka akses 10 menit'}</button><button class="btn ghost sm" onclick="vaultChange()">Ubah kode</button></div>
+  <div class="row" style="margin-bottom:10px"><button class="btn ghost sm" style="flex:1" onclick="vaultChange()">Ubah kode unik</button></div>
   <div class="search">${ico('search', 20)}<input id="q" placeholder="Cari aplikasi" oninput="onQ(this.value,'v')"></div>
-  <div style="margin-bottom:10px"><span class="pill" id="cnt">${st.vaultCount} disembunyikan</span>${open ? ' <span class="pill">Akses sementara aktif</span>' : ''}</div>
+  <div style="margin-bottom:10px"><span class="pill" id="cnt">${st.vaultCount} dikunci kode</span></div>
   <div id="list">${'<div class="sk"></div>'.repeat(5)}</div>`;
 }
 function vaultCreate() {
@@ -371,13 +379,12 @@ function vaultEnter() {
   const r = J(A.vaultOpen($('#v1').value)); if (!r.ok) { $('#serr').textContent = r.msg; shake('#v1'); return; }
   refresh();
 }
-function grant(m) { const r = J(A.vaultGrant(m)); if (!r.ok) return toast(r.msg); toast(m ? 'Akses dibuka 10 menit' : 'Brankas dikunci'); refresh(); }
 function vaultChange() {
   sheet({title:'Ubah kode unik', fields:[{id:'o', ph:'Kode unik lama'}, {id:'n', ph:'Kode unik baru (min. 4)'}],
     onOk: v => { const r = J(A.vaultChange(v.o, v.n)); if (r.ok) toast('Kode unik diubah'); return R(r); }});
 }
 function vaultForgot() {
-  sheet({title:'Lupa kode unik', desc:'Jawab pertanyaan: <b>' + esc(st.question) + '</b><br>Jika benar, kode unik direset dan semua aplikasi kembali ke normal.', ok:'Reset',
+  sheet({title:'Lupa kode unik', desc:'Jawab pertanyaan: <b>' + esc(st.question) + '</b><br>Jika benar, kode unik direset dan semua aplikasi brankas dikembalikan normal.', ok:'Reset',
     fields:[{id:'a', ph:'Jawaban'}],
     onOk: v => { const r = J(A.vaultForgot(v.a)); if (r.ok) { apps = null; refresh(); toast('Kode unik direset, aplikasi dikembalikan'); } return R(r); }});
 }

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -29,6 +32,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".VaultGateActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+
         <service
             android:name=".GuestService"
             android:exported="true"
@@ -46,7 +58,18 @@
             android:name=".AceTile"
             android:exported="true"
             android:icon="@drawable/ic_tile"
-            android:label="@string/app_name"
+            android:label="Mode ACE"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".ScreenTile"
+            android:exported="true"
+            android:icon="@drawable/ic_screen"
+            android:label="Layar on/off"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

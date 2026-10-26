@@ -30,13 +30,12 @@ public class GuestService extends AccessibilityService {
     private static final String SYSTEMUI = "com.android.systemui";
     private static final String MSG_GUEST =
             "Mode tamu aktif, silahkan kasih tau pemilik hp untuk mengaksesnya";
-    private static final String MSG_VAULT = "Aplikasi ini disembunyikan oleh pemilik hp";
 
     static final String[][] TOGGLES = {
             {"data", "data seluler", "data ponsel", "mobile data", "cellular data", "internet"},
             {"airplane", "mode pesawat", "airplane", "pesawat"},
             {"wifi", "wi-fi", "wifi"},
-            {"hotspot", "hotspot", "tethering"},
+            {"hotspot", "titik panas", "hotspot", "hotspots", "tethering"},
             {"bluetooth", "bluetooth"},
             {"location", "lokasi", "location"},
             {"flashlight", "senter", "flashlight", "torch"},
@@ -58,6 +57,7 @@ public class GuestService extends AccessibilityService {
     private final List<View> blockers = new ArrayList<>();
     private List<Rect> lastRects = new ArrayList<>();
     private boolean scanPending = false;
+    private long lastGate = 0;
 
     private final Runnable hideRunnable = this::hideOverlay;
     private final Runnable scanRunnable = () -> { scanPending = false; scan(); };
@@ -83,6 +83,14 @@ public class GuestService extends AccessibilityService {
         return r != null ? r.activityInfo.packageName : "";
     }
 
+    private String imePackage() {
+        String s = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.DEFAULT_INPUT_METHOD);
+        if (s == null) return "";
+        int i = s.indexOf('/');
+        return i > 0 ? s.substring(0, i) : s;
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent e) {
         if (e.getPackageName() == null) return;
@@ -93,11 +101,23 @@ public class GuestService extends AccessibilityService {
         int type = e.getEventType();
 
         if (type == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            // Keluar dari aplikasi brankas: kunci lagi
+            String ok = sp.getString("vault_ok", "");
+            boolean neutral = pkg.equals(SYSTEMUI) || pkg.equals(imePackage());
+            if (!ok.isEmpty() && !pkg.equals(ok) && !neutral) {
+                sp.edit().remove("vault_ok").apply();
+                ok = "";
+            }
+
             int reason = blockReason(sp, pkg);
-            if (reason != 0) {
+            if (reason == 1) {
                 performGlobalAction(GLOBAL_ACTION_HOME);
-                showOverlay(reason == 1 ? MSG_GUEST : MSG_VAULT);
+                showOverlay(MSG_GUEST);
                 clearBlockers();
+                return;
+            }
+            if (reason == 2 && !pkg.equals(ok)) {
+                openGate(pkg);
                 return;
             }
         }
@@ -112,7 +132,7 @@ public class GuestService extends AccessibilityService {
         }
     }
 
-    // 0 = tidak diblokir, 1 = karena mode tamu, 2 = karena brankas
+    // 0 = bebas, 1 = diblokir mode tamu, 2 = perlu kode brankas
     private int blockReason(SharedPreferences sp, String pkg) {
         if (pkg.equals(SYSTEMUI) || pkg.equals(homePackage())) return 0;
         if (sp.getBoolean("guest", false)) {
@@ -120,9 +140,26 @@ public class GuestService extends AccessibilityService {
             if (locked.contains(pkg) || pkg.equals("com.android.settings")) return 1;
         }
         Set<String> vault = sp.getStringSet("vault_apps", new HashSet<>());
-        if (vault.contains(pkg) && System.currentTimeMillis() > sp.getLong("vault_open_until", 0)) return 2;
+        if (vault.contains(pkg) && sp.getString("vault_code", null) != null) return 2;
         return 0;
     }
+
+    private void openGate(String pkg) {
+        long now = System.currentTimeMillis();
+        if (now - lastGate < 600) return;
+        lastGate = now;
+        Intent i = new Intent(this, VaultGateActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        i.putExtra("pkg", pkg);
+        try {
+            startActivity(i);
+        } catch (Exception ex) {
+            performGlobalAction(GLOBAL_ACTION_HOME);
+        }
+    }
+
+    // ---------- Blokir tombol panel ----------
 
     private void scan() {
         SharedPreferences sp = prefs();
@@ -228,6 +265,8 @@ public class GuestService extends AccessibilityService {
         blockers.clear();
         lastRects = new ArrayList<>();
     }
+
+    // ---------- Layar pesan mode tamu ----------
 
     private void showOverlay(String msg) {
         handler.removeCallbacks(hideRunnable);
